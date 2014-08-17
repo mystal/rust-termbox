@@ -1,5 +1,7 @@
 # A Rust wrapper for the termbox library.
 
+[![Build Status](https://travis-ci.org/TyOverby/rust-termbox.svg)](https://travis-ci.org/TyOverby/rust-termbox)
+
 [Crate documentation](http://apribadi.github.com/rust-termbox/).
 
 The [original termbox library](https://github.com/nsf/termbox) was
