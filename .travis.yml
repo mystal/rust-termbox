@@ -1,5 +1,10 @@
 before_install:
 install:
+    - git clone https://github.com/nsf/termbox.git
+    - cd termbox
+    - ./waf configure --prefix=usr
+    - ./waf
+    - ./waf install --destdir=/
     - curl www.rust-lang.org/rustup.sh | sudo bash
 script:
     - rustc --version
