@@ -6,7 +6,6 @@ install:
     - ./waf
     - sudo cp build/src/*so* /usr/lib/
     - sudo cp src/termbox.h /usr/include/
-    - ldconfig
     - curl www.rust-lang.org/rustup.sh | sudo bash
 script:
     - rustc --version
