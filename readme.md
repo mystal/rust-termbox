@@ -10,9 +10,13 @@ created by nsf.
 ## Install
 
 1. Install [original termbox library](https://github.com/nsf/termbox)
-2. Install rust-termbox
+2. Add termbox as a cargo dependency
 
-        $ rustpkg install github.com/shinichy/rust-termbox
+```
+[dependencies.termbox]
+git = "git@github.com:TyOverby/rust-termbox.git"
+```
+
 
 ## Hello World example
 
