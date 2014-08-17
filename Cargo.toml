@@ -1,0 +1,8 @@
+[project]
+name = "termbox"
+authors = []
+version = "0.0.0-alpha"
+
+[[lib]]
+name = "termbox"
+path = "src/lib.rs"

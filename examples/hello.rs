@@ -1,14 +1,14 @@
 extern crate std;
 extern crate termbox;
 
-use std::io::Timer;
+use std::io::timer::sleep;
+use std::time::duration::Duration;
 use tb = termbox;
 
 fn main() {
     tb::init();
-    tb::print(1, 1, tb::bold, tb::white, tb::black, ~"Hello, world!");
+    tb::print(1, 1, tb::Bold, tb::White, tb::Black, "Hello, world!");
     tb::present();
-    let mut timer = Timer::new().unwrap();
-    timer.sleep(1000);
+    sleep(Duration::milliseconds(1000));
     tb::shutdown();
 }
