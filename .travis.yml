@@ -5,6 +5,7 @@ install:
     - ./waf configure --prefix=usr
     - ./waf
     - ./waf install --destdir=/
+    - ldconfig
     - curl www.rust-lang.org/rustup.sh | sudo bash
 script:
     - rustc --version
