@@ -4,7 +4,8 @@ install:
     - cd termbox
     - ./waf configure --prefix=usr
     - ./waf
-    - ./waf install --destdir=/
+    - sudo cp build/src/*so* /usr/lib/
+    - sudo cp src/termbox.h /usr/include/
     - ldconfig
     - curl www.rust-lang.org/rustup.sh | sudo bash
 script:
