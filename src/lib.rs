@@ -276,6 +276,7 @@ pub fn print_ch(x: uint, y: uint, sty: Style, fg: Color, bg: Color, ch: char) {
     }
 }
 
+#[deriving(Show, Eq, PartialEq)]
 pub enum Key {
     F1 = 65535,
     F2 = 65534,
@@ -346,6 +347,7 @@ pub enum Key {
     //ctrl_8 = 127
 }
 
+#[deriving(Show, Eq, PartialEq)]
 pub enum Color {
     Black,
     Red,
@@ -357,6 +359,7 @@ pub enum Color {
     White
 }
 
+#[deriving(Show, Eq, PartialEq)]
 pub enum Style {
     Normal,
     Bold,
@@ -381,6 +384,7 @@ pub fn nil_raw_event() -> RawEvent {
     RawEvent{etype: 0, emod: 0, key: 0, ch: 0, w: 0, h: 0}
 }
 
+#[deriving(Show, Eq, PartialEq)]
 pub enum Event {
     KeyEvent(u8, Option<Key>, Option<char>),
     ResizeEvent(i32, i32),
