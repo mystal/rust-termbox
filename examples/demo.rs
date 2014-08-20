@@ -1,7 +1,6 @@
-extern crate std;
 extern crate termbox;
 
-use tb = termbox;
+use termbox as tb;
 
 fn print(x: uint, y: uint, s: &str) {
     tb::print(x, y, tb::Bold, tb::White, tb::Black, s);

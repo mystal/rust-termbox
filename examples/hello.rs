@@ -1,9 +1,8 @@
-extern crate std;
 extern crate termbox;
 
 use std::io::timer::sleep;
 use std::time::duration::Duration;
-use tb = termbox;
+use termbox as tb;
 
 fn main() {
     tb::init();
