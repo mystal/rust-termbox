@@ -142,7 +142,7 @@ pub fn present() {
     }
 }
 
-pub fn set_cursor(cx: int, cy: int) {
+pub fn set_cursor(cx: uint, cy: uint) {
     unsafe {
         c::tb_set_cursor(cx as c_int, cy as c_int);
     }
