@@ -6,3 +6,4 @@ libtermbox*.so
 *.swp
 .rust
 target/
+Cargo.lock
