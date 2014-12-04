@@ -79,7 +79,6 @@ pub struct RawEvent {
 mod c {
     use libc::types::os::arch::c95::{ c_int, c_uint};
 
-    #[link(name = "termbox")]
     extern {
         pub fn tb_init() -> c_int;
         pub fn tb_shutdown();

@@ -1,8 +1,12 @@
-[project]
+[package]
+
 name = "termbox"
 authors = []
 version = "0.0.0-alpha"
+links = "termbox"
+build = "build.rs"
 
 [[lib]]
+
 name = "termbox"
 path = "src/lib.rs"
