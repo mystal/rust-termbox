@@ -1,7 +1,3 @@
-#![desc = "A Rust wrapper for the termbox library"]
-#![license = "MIT"]
-#![crate_type = "lib" ]
-
 #![feature(globs)]
 #![feature(phase)]
 

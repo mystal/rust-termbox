@@ -1,8 +1,11 @@
 [package]
 
 name = "termbox"
-authors = []
 version = "0.0.0-alpha"
+authors = []
+license = "MIT"
+description = "A Rust wrapper for the termbox library"
+
 links = "termbox"
 build = "build.rs"
 
