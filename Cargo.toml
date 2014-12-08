@@ -6,7 +6,7 @@ version = "0.0.0-alpha"
 links = "termbox"
 build = "build.rs"
 
-[[lib]]
+[lib]
 
 name = "termbox"
 path = "src/lib.rs"
