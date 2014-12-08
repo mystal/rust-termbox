@@ -2,7 +2,6 @@
 #![license = "MIT"]
 #![crate_type = "lib" ]
 
-#![feature(globs)]
 #![feature(phase)]
 
 #[phase(plugin, link)] extern crate log;
@@ -11,7 +10,7 @@ extern crate libc;
 use std::task;
 use std::char;
 
-pub use libc::types::os::arch::c95::{c_int, c_uint};
+pub use libc::types::os::arch::c95::c_int;
 
 /*
  *
@@ -62,42 +61,54 @@ pub use libc::types::os::arch::c95::{c_int, c_uint};
 
 
 /*
- * The event type matches struct tb_event from termbox.h
- */
-pub struct RawEvent {
-    etype: u8,
-    emod: u8,
-    key: u16,
-    ch: u32,
-    w: i32,
-    h: i32,
-}
-
-/*
  * Foreign functions from termbox.
  */
 mod c {
-    use libc::types::os::arch::c95::{ c_int, c_uint};
+    use libc::types::os::arch::c95::c_int;
+
+    /*
+     * The event type matches struct tb_event from termbox.h
+     */
+    pub struct tb_event {
+        pub etype: u8,
+        pub emod: u8,
+        pub key: u16,
+        pub ch: u32,
+        pub w: i32,
+        pub h: i32,
+    }
+
+    pub struct tb_cell {
+        pub ch: u32,
+        pub fg: u16,
+        pub bg: u16,
+    }
 
     extern {
         pub fn tb_init() -> c_int;
         pub fn tb_shutdown();
 
-        pub fn tb_width() -> c_uint;
-        pub fn tb_height() -> c_uint;
+        pub fn tb_width() -> c_int;
+        pub fn tb_height() -> c_int;
 
         pub fn tb_clear();
+        pub fn tb_set_clear_attributes(fg: u16, bg: u16);
+
         pub fn tb_present();
 
         pub fn tb_set_cursor(cx: c_int, cy: c_int);
 
-        pub fn tb_change_cell(x: c_uint, y: c_uint, ch: u32, fg: u16, bg: u16);
+        pub fn tb_put_cell(x: c_int, y: c_int, cell: *const tb_cell);
+        pub fn tb_change_cell(x: c_int, y: c_int, ch: u32, fg: u16, bg: u16);
+
+        pub fn tb_cell_buffer() -> *mut tb_cell;
 
         pub fn tb_select_input_mode(mode: c_int) -> c_int;
-        pub fn tb_set_clear_attributes(fg: u16, bg: u16);
+        pub fn tb_select_output_mode(mode: c_int) -> c_int;
 
-        pub fn tb_peek_event(ev: *const ::RawEvent, timeout: c_uint) -> c_int;
-        pub fn tb_poll_event(ev: *const ::RawEvent) -> c_int;
+        pub fn tb_peek_event(ev: *const tb_event, timeout: c_int) -> c_int;
+
+        pub fn tb_poll_event(ev: *const tb_event) -> c_int;
     }
 }
 
@@ -110,15 +121,11 @@ pub fn shutdown() {
 }
 
 pub fn width() -> uint {
-    unsafe {
-        return  c::tb_width() as uint;
-    }
+    unsafe { c::tb_width() as uint }
 }
 
 pub fn height() -> uint {
-    unsafe {
-        return  c::tb_height() as uint;
-    }
+    unsafe { c::tb_height() as uint }
 }
 
 /**
@@ -126,9 +133,7 @@ pub fn height() -> uint {
  */
 
 pub fn clear() {
-    unsafe {
-        c::tb_clear();
-    }
+    unsafe { c::tb_clear(); }
 }
 
 // /**
@@ -136,22 +141,16 @@ pub fn clear() {
 //  */
 
 pub fn present() {
-    unsafe {
-        c::tb_present();
-    }
+    unsafe { c::tb_present(); }
 }
 
 pub fn set_cursor(cx: uint, cy: uint) {
-    unsafe {
-        c::tb_set_cursor(cx as c_int, cy as c_int);
-    }
+    unsafe { c::tb_set_cursor(cx as c_int, cy as c_int); }
 }
 
 // low-level wrapper
 pub fn change_cell(x: uint, y: uint, ch: u32, fg: u16, bg: u16) {
-    unsafe {
-        c::tb_change_cell(x as c_uint, y as c_uint, ch, fg, bg);
-    }
+    unsafe { c::tb_change_cell(x as c_int, y as c_int, ch, fg, bg); }
 }
 
 /// Convert from enums to u16
@@ -263,7 +262,7 @@ pub fn print(x: uint, y: uint, sty: Style, fg: Color, bg: Color, s: &str) {
     let bg: u16 = convert_color(bg);
     for (i, ch) in s.chars().enumerate() {
         unsafe {
-            c::tb_change_cell((x + i) as c_uint, y as c_uint, ch as u32, fg, bg);
+            c::tb_change_cell((x + i) as c_int, y as c_int, ch as u32, fg, bg);
         }
     }
 }
@@ -276,7 +275,7 @@ pub fn print_ch(x: uint, y: uint, sty: Style, fg: Color, bg: Color, ch: char) {
     unsafe {
         let fg: u16 = convert_color(fg) | convert_style(sty);
         let bg: u16 = convert_color(bg);
-        c::tb_change_cell(x as c_uint, y as c_uint, ch as u32, fg, bg);
+        c::tb_change_cell(x as c_int, y as c_int, ch as u32, fg, bg);
     }
 }
 
@@ -389,8 +388,8 @@ pub fn with_term(f: proc():Send) {
     }
 }
 
-pub fn nil_raw_event() -> RawEvent {
-    RawEvent{etype: 0, emod: 0, key: 0, ch: 0, w: 0, h: 0}
+pub fn nil_raw_event() -> c::tb_event {
+    c::tb_event{etype: 0, emod: 0, key: 0, ch: 0, w: 0, h: 0}
 }
 
 #[deriving(Show, Eq, PartialEq)]
@@ -408,8 +407,8 @@ pub enum Event {
 pub fn peek_event(timeout: uint) -> Event {
     unsafe {
         let ev = nil_raw_event();
-        let rc = c::tb_peek_event(&ev, timeout as c_uint);
-        return unpack_event(rc, &ev);
+        let rc = c::tb_peek_event(&ev, timeout as c_int);
+        unpack_event(rc, &ev)
     }
 }
 
@@ -421,7 +420,7 @@ pub fn poll_event() -> Event {
     unsafe {
         let ev = nil_raw_event();
         let rc = c::tb_poll_event(&ev);
-        return unpack_event(rc, &ev);
+        unpack_event(rc, &ev)
     }
 }
 
@@ -433,7 +432,7 @@ pub fn poll_event() -> Event {
 //  *   2 -> resize
 //  *   -1 -> error
 //  */
-pub fn unpack_event(ev_type: c_int, ev: &RawEvent) -> Event {
+pub fn unpack_event(ev_type: c_int, ev: &c::tb_event) -> Event {
     match ev_type {
         0 => Event::NoEvent,
         1 => Event::KeyEvent(ev.emod, reverse_convert_key(ev.key), char::from_u32(ev.ch)),
