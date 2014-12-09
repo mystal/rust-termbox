@@ -1,3 +1,5 @@
+#![allow(non_camel_case_types)]
+
 extern crate libc;
 
 use libc::c_int;
@@ -5,6 +7,7 @@ use libc::c_int;
 /*
  * The event type matches struct tb_event from termbox.h
  */
+#[repr(C)]
 pub struct tb_event {
     pub etype: u8,
     pub emod: u8,
@@ -14,6 +17,7 @@ pub struct tb_event {
     pub h: i32,
 }
 
+#[repr(C)]
 pub struct tb_cell {
     pub ch: u32,
     pub fg: u16,
