@@ -4,6 +4,54 @@ extern crate libc;
 
 use libc::c_int;
 
+pub const TB_HIDE_CURSOR: c_int = -1;
+pub const TB_MOD_ALT: c_int = 1;
+
+pub enum tb_color {
+    TB_DEFAULT,
+    TB_BLACK,
+    TB_RED,
+    TB_GREEN,
+    TB_YELLOW,
+    TB_BLUE,
+    TB_MAGENTA,
+    TB_CYAN,
+    TB_WHITE,
+}
+
+bitflags! {
+    flags tb_attribute: u16 {
+        const TB_BOLD = 0x0100,
+        const TB_UNDERLINE = 0x0200,
+        const TB_REVERSE = 0x0400,
+    }
+}
+
+pub enum tb_event_type {
+    TB_EVENT_KEY = 1,
+    TB_EVENT_RESIZE = 2,
+}
+
+pub enum tb_error {
+    TB_EUNSUPPORTED_TERMINAL = -1,
+    TB_EFAILED_TO_OPEN_TTY = -2,
+    TB_EPIPE_TRAP_ERROR = -3,
+}
+
+pub enum tb_input_mode {
+    TB_INPUT_CURRENT = 0,
+    TB_INPUT_ESC = 1,
+    TB_INPUT_ALT = 2,
+}
+
+pub enum tb_output_mode {
+    TB_OUTPUT_CURRENT = 0,
+    TB_OUTPUT_NORMAL = 1,
+    TB_OUTPUT_256 = 2,
+    TB_OUTPUT_216 = 3,
+    TB_OUTPUT_GRAYSCALE = 4,
+}
+
 /*
  * The event type matches struct tb_event from termbox.h
  */
