@@ -1,21 +1,3 @@
-#![feature(phase)]
-
-#[phase(plugin, link)] extern crate log;
-extern crate libc;
-
-extern crate "termbox_sys" as ffi;
-
-use libc::c_int;
-
-use std::char;
-use std::task;
-
-use ffi::{
-    tb_attribute,
-    tb_color,
-    tb_event_type,
-};
-
 /*
  *
  * A lightweight curses alternative wrapping the termbox library.
@@ -49,192 +31,23 @@ use ffi::{
  *
  */
 
-// Exported functions
-// export init, shutdown
-//      , width, height
-//      , clear, present
-//      , set_cursor
-//      , print, print_ch
-//      , poll_event, peek_event
-//      , event;
+#![feature(phase)]
 
-// Exported types
-// export color, style
-//      , event;
+extern crate libc;
+#[phase(plugin, link)] extern crate log;
 
+extern crate "termbox_sys" as ffi;
 
-pub fn init() -> int {
-    unsafe { ffi::tb_init() as int }
-}
+use libc::c_int;
 
-pub fn shutdown() {
-    unsafe { ffi::tb_shutdown(); }
-}
+use std::char;
+use std::task;
 
-pub fn width() -> uint {
-    unsafe { ffi::tb_width() as uint }
-}
-
-pub fn height() -> uint {
-    unsafe { ffi::tb_height() as uint }
-}
-
-/**
- * Clear buffer.
- */
-
-pub fn clear() {
-    unsafe { ffi::tb_clear(); }
-}
-
-// /**
-//  * Write buffer to terminal.
-//  */
-
-pub fn present() {
-    unsafe { ffi::tb_present(); }
-}
-
-pub fn set_cursor(cx: uint, cy: uint) {
-    unsafe { ffi::tb_set_cursor(cx as c_int, cy as c_int); }
-}
-
-pub fn hide_cursor() {
-    unsafe { ffi::tb_set_cursor(ffi::TB_HIDE_CURSOR, ffi::TB_HIDE_CURSOR); }
-}
-
-// low-level wrapper
-pub fn change_cell(x: uint, y: uint, ch: u32, fg: u16, bg: u16) {
-    unsafe { ffi::tb_change_cell(x as c_int, y as c_int, ch, fg, bg); }
-}
-
-/// Convert from enums to u16
-pub fn convert_color(c: Color) -> u16 {
-    let ret = match c {
-        Color::Default => tb_color::TB_DEFAULT,
-        Color::Black => tb_color::TB_BLACK,
-        Color::Red => tb_color::TB_RED,
-        Color::Green => tb_color::TB_GREEN,
-        Color::Yellow => tb_color::TB_YELLOW,
-        Color::Blue => tb_color::TB_BLUE,
-        Color::Magenta => tb_color::TB_MAGENTA,
-        Color::Cyan => tb_color::TB_CYAN,
-        Color::White => tb_color::TB_WHITE,
-    };
-    ret as u16
-}
-
-pub fn convert_style(style: Style) -> u16 {
-    match style {
-        Style::Normal => tb_attribute::empty(),
-        Style::Bold => ffi::TB_BOLD,
-        Style::Underline => ffi::TB_UNDERLINE,
-        Style::BoldUnderline => ffi::TB_BOLD | ffi::TB_UNDERLINE,
-        Style::Reverse => ffi::TB_UNDERLINE,
-        Style::BoldReverse => ffi::TB_BOLD | ffi::TB_REVERSE,
-        Style::UnderlineReverse => ffi::TB_UNDERLINE | ffi::TB_REVERSE,
-        Style::BoldUnderlineReverse => ffi::TB_BOLD | ffi::TB_UNDERLINE |
-            ffi::TB_REVERSE,
-    }.bits()
-}
-
-pub fn reverse_convert_key(k: u16) -> Option<Key> {
-    match k {
-        65535 => Some(Key::F1),
-        65534 => Some(Key::F2),
-        65533 => Some(Key::F3),
-        65532 => Some(Key::F4),
-        65531 => Some(Key::F5),
-        65530 => Some(Key::F6),
-        65529 => Some(Key::F7),
-        65528 => Some(Key::F8),
-        65527 => Some(Key::F9),
-        65526 => Some(Key::F10),
-        65525 => Some(Key::F11),
-        65524 => Some(Key::F12),
-        65523 => Some(Key::Insert),
-        65522 => Some(Key::Delete),
-        65521 => Some(Key::Home),
-        65520 => Some(Key::End),
-        65519 => Some(Key::Pgup),
-        65518 => Some(Key::Pgdn),
-        65517 => Some(Key::ArrowUp),
-        65516 => Some(Key::ArrowDown),
-        65515 => Some(Key::ArrowLeft),
-        65514 => Some(Key::ArrowRight),
-        0 => Some(Key::CtrlTilde),
-        //0 => Some(ctrl2),
-        1 => Some(Key::CtrlA),
-        2 => Some(Key::CtrlB),
-        3 => Some(Key::CtrlC),
-        4 => Some(Key::CtrlD),
-        5 => Some(Key::CtrlE),
-        6 => Some(Key::CtrlF),
-        7 => Some(Key::CtrlG),
-        8 => Some(Key::Backspace),
-        //8 => Some(ctrlH),
-        9 => Some(Key::Tab),
-        //9 => Some(ctrlI),
-        10 => Some(Key::CtrlJ),
-        11 => Some(Key::CtrlK),
-        12 => Some(Key::CtrlL),
-        13 => Some(Key::Enter),
-        //13 => Some(ctrlM),
-        14 => Some(Key::CtrlN),
-        15 => Some(Key::CtrlO),
-        16 => Some(Key::CtrlP),
-        17 => Some(Key::CtrlQ),
-        18 => Some(Key::CtrlR),
-        19 => Some(Key::CtrlS),
-        20 => Some(Key::CtrlT),
-        21 => Some(Key::CtrlU),
-        22 => Some(Key::CtrlV),
-        23 => Some(Key::CtrlW),
-        24 => Some(Key::CtrlX),
-        25 => Some(Key::CtrlY),
-        26 => Some(Key::CtrlZ),
-        27 => Some(Key::Esc),
-        //27 => Some(ctrlLsqBracket),
-        //27 => Some(ctrl3),
-        28 => Some(Key::Ctrl4),
-        //28 => Some(ctrlBackslash),
-        29 => Some(Key::Ctrl5),
-        //29 => Some(ctrlRsqBracket),
-        30 => Some(Key::Ctrl6),
-        31 => Some(Key::Ctrl7),
-        //31 => Some(ctrlSlash),
-        //31 => Some(ctrlUnderscore),
-        32 => Some(Key::Space),
-        127 => Some(Key::Backspace2),
-        //127 => ctrl8
-        _ => None
-    }
-}
-/**
- * Print a string to the buffer.  Leftmost charater is at (x, y).
- */
-
-pub fn print(x: uint, y: uint, sty: Style, fg: Color, bg: Color, s: &str) {
-    let fg: u16 = convert_color(fg) | convert_style(sty);
-    let bg: u16 = convert_color(bg);
-    for (i, ch) in s.chars().enumerate() {
-        unsafe {
-            ffi::tb_change_cell((x + i) as c_int, y as c_int, ch as u32, fg, bg);
-        }
-    }
-}
-
-// /**
-//  * Print a charater to the buffer.
-//  */
-
-pub fn print_ch(x: uint, y: uint, sty: Style, fg: Color, bg: Color, ch: char) {
-    unsafe {
-        let fg: u16 = convert_color(fg) | convert_style(sty);
-        let bg: u16 = convert_color(bg);
-        ffi::tb_change_cell(x as c_int, y as c_int, ch as u32, fg, bg);
-    }
-}
+use ffi::{
+    tb_attribute,
+    tb_color,
+    tb_event_type,
+};
 
 #[deriving(Show, Eq, PartialEq)]
 pub enum Key {
@@ -332,6 +145,102 @@ pub enum Style {
     BoldUnderlineReverse
 }
 
+#[deriving(Show, Eq, PartialEq)]
+pub enum Event {
+    KeyEvent(u8, Option<Key>, Option<char>),
+    ResizeEvent(i32, i32),
+    NoEvent
+}
+
+pub fn init() -> int {
+    unsafe { ffi::tb_init() as int }
+}
+
+pub fn shutdown() {
+    unsafe { ffi::tb_shutdown(); }
+}
+
+pub fn width() -> uint {
+    unsafe { ffi::tb_width() as uint }
+}
+
+pub fn height() -> uint {
+    unsafe { ffi::tb_height() as uint }
+}
+
+/**
+ * Clear buffer.
+ */
+pub fn clear() {
+    unsafe { ffi::tb_clear(); }
+}
+
+// /**
+//  * Write buffer to terminal.
+//  */
+pub fn present() {
+    unsafe { ffi::tb_present(); }
+}
+
+pub fn set_cursor(cx: uint, cy: uint) {
+    unsafe { ffi::tb_set_cursor(cx as c_int, cy as c_int); }
+}
+
+pub fn hide_cursor() {
+    unsafe { ffi::tb_set_cursor(ffi::TB_HIDE_CURSOR, ffi::TB_HIDE_CURSOR); }
+}
+
+// low-level wrapper
+pub fn change_cell(x: uint, y: uint, ch: u32, fg: u16, bg: u16) {
+    unsafe { ffi::tb_change_cell(x as c_int, y as c_int, ch, fg, bg); }
+}
+
+/**
+ * Print a string to the buffer.  Leftmost charater is at (x, y).
+ */
+pub fn print(x: uint, y: uint, sty: Style, fg: Color, bg: Color, s: &str) {
+    let fg: u16 = convert_color(fg) | convert_style(sty);
+    let bg: u16 = convert_color(bg);
+    for (i, ch) in s.chars().enumerate() {
+        unsafe {
+            ffi::tb_change_cell((x + i) as c_int, y as c_int, ch as u32, fg, bg);
+        }
+    }
+}
+
+// /**
+//  * Print a charater to the buffer.
+//  */
+pub fn print_ch(x: uint, y: uint, sty: Style, fg: Color, bg: Color, ch: char) {
+    unsafe {
+        let fg: u16 = convert_color(fg) | convert_style(sty);
+        let bg: u16 = convert_color(bg);
+        ffi::tb_change_cell(x as c_int, y as c_int, ch as u32, fg, bg);
+    }
+}
+
+/**
+ * Get an event if within timeout milliseconds, otherwise return urn NoEvent.
+ */
+pub fn peek_event(timeout: uint) -> Event {
+    unsafe {
+        let ev = nil_raw_event();
+        let rc = ffi::tb_peek_event(&ev, timeout as c_int);
+        unpack_event(rc, &ev)
+    }
+}
+
+// /**
+//  * Blocking function to return urn next event.
+//  */
+pub fn poll_event() -> Event {
+    unsafe {
+        let ev = nil_raw_event();
+        let rc = ffi::tb_poll_event(&ev);
+        unpack_event(rc, &ev)
+    }
+}
+
 //Convenience functions
 pub fn with_term(f: proc():Send) {
     init();
@@ -345,40 +254,111 @@ pub fn with_term(f: proc():Send) {
     }
 }
 
+/// Convert from enums to u16
+fn convert_color(c: Color) -> u16 {
+    let ret = match c {
+        Color::Default => tb_color::TB_DEFAULT,
+        Color::Black => tb_color::TB_BLACK,
+        Color::Red => tb_color::TB_RED,
+        Color::Green => tb_color::TB_GREEN,
+        Color::Yellow => tb_color::TB_YELLOW,
+        Color::Blue => tb_color::TB_BLUE,
+        Color::Magenta => tb_color::TB_MAGENTA,
+        Color::Cyan => tb_color::TB_CYAN,
+        Color::White => tb_color::TB_WHITE,
+    };
+    ret as u16
+}
+
+fn convert_style(style: Style) -> u16 {
+    match style {
+        Style::Normal => tb_attribute::empty(),
+        Style::Bold => ffi::TB_BOLD,
+        Style::Underline => ffi::TB_UNDERLINE,
+        Style::BoldUnderline => ffi::TB_BOLD | ffi::TB_UNDERLINE,
+        Style::Reverse => ffi::TB_UNDERLINE,
+        Style::BoldReverse => ffi::TB_BOLD | ffi::TB_REVERSE,
+        Style::UnderlineReverse => ffi::TB_UNDERLINE | ffi::TB_REVERSE,
+        Style::BoldUnderlineReverse => ffi::TB_BOLD | ffi::TB_UNDERLINE |
+            ffi::TB_REVERSE,
+    }.bits()
+}
+
+fn reverse_convert_key(k: u16) -> Option<Key> {
+    match k {
+        65535 => Some(Key::F1),
+        65534 => Some(Key::F2),
+        65533 => Some(Key::F3),
+        65532 => Some(Key::F4),
+        65531 => Some(Key::F5),
+        65530 => Some(Key::F6),
+        65529 => Some(Key::F7),
+        65528 => Some(Key::F8),
+        65527 => Some(Key::F9),
+        65526 => Some(Key::F10),
+        65525 => Some(Key::F11),
+        65524 => Some(Key::F12),
+        65523 => Some(Key::Insert),
+        65522 => Some(Key::Delete),
+        65521 => Some(Key::Home),
+        65520 => Some(Key::End),
+        65519 => Some(Key::Pgup),
+        65518 => Some(Key::Pgdn),
+        65517 => Some(Key::ArrowUp),
+        65516 => Some(Key::ArrowDown),
+        65515 => Some(Key::ArrowLeft),
+        65514 => Some(Key::ArrowRight),
+        0 => Some(Key::CtrlTilde),
+        //0 => Some(ctrl2),
+        1 => Some(Key::CtrlA),
+        2 => Some(Key::CtrlB),
+        3 => Some(Key::CtrlC),
+        4 => Some(Key::CtrlD),
+        5 => Some(Key::CtrlE),
+        6 => Some(Key::CtrlF),
+        7 => Some(Key::CtrlG),
+        8 => Some(Key::Backspace),
+        //8 => Some(ctrlH),
+        9 => Some(Key::Tab),
+        //9 => Some(ctrlI),
+        10 => Some(Key::CtrlJ),
+        11 => Some(Key::CtrlK),
+        12 => Some(Key::CtrlL),
+        13 => Some(Key::Enter),
+        //13 => Some(ctrlM),
+        14 => Some(Key::CtrlN),
+        15 => Some(Key::CtrlO),
+        16 => Some(Key::CtrlP),
+        17 => Some(Key::CtrlQ),
+        18 => Some(Key::CtrlR),
+        19 => Some(Key::CtrlS),
+        20 => Some(Key::CtrlT),
+        21 => Some(Key::CtrlU),
+        22 => Some(Key::CtrlV),
+        23 => Some(Key::CtrlW),
+        24 => Some(Key::CtrlX),
+        25 => Some(Key::CtrlY),
+        26 => Some(Key::CtrlZ),
+        27 => Some(Key::Esc),
+        //27 => Some(ctrlLsqBracket),
+        //27 => Some(ctrl3),
+        28 => Some(Key::Ctrl4),
+        //28 => Some(ctrlBackslash),
+        29 => Some(Key::Ctrl5),
+        //29 => Some(ctrlRsqBracket),
+        30 => Some(Key::Ctrl6),
+        31 => Some(Key::Ctrl7),
+        //31 => Some(ctrlSlash),
+        //31 => Some(ctrlUnderscore),
+        32 => Some(Key::Space),
+        127 => Some(Key::Backspace2),
+        //127 => ctrl8
+        _ => None
+    }
+}
+
 fn nil_raw_event() -> ffi::tb_event {
     ffi::tb_event{etype: 0, emod: 0, key: 0, ch: 0, w: 0, h: 0}
-}
-
-#[deriving(Show, Eq, PartialEq)]
-pub enum Event {
-    KeyEvent(u8, Option<Key>, Option<char>),
-    ResizeEvent(i32, i32),
-    NoEvent
-}
-
-/**
- * Get an event if within timeout milliseconds, otherwise return urn NoEvent.
- */
-
-
-pub fn peek_event(timeout: uint) -> Event {
-    unsafe {
-        let ev = nil_raw_event();
-        let rc = ffi::tb_peek_event(&ev, timeout as c_int);
-        unpack_event(rc, &ev)
-    }
-}
-
-// /**
-//  * Blocking function to return urn next event.
-//  */
-
-pub fn poll_event() -> Event {
-    unsafe {
-        let ev = nil_raw_event();
-        let rc = ffi::tb_poll_event(&ev);
-        unpack_event(rc, &ev)
-    }
 }
 
 // /* helper fn
