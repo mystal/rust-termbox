@@ -1,35 +1,31 @@
-/*
- *
- * A lightweight curses alternative wrapping the termbox library.
- *
- * # SYNOPSIS
- *
- * A hello world for the terminal:
- *
- *     use std;
- *     use termbox;
- *
- *     import tb = termbox;
- *
- *     fn main() {
- *         tb::init();
- *         tb::print(1, 1, tb::bold, tb::white, tb::black, "Hello, world!");
- *         tb::present();
- *         std::timer::sleep(std::uv_global_loop::get(), 1000);
- *         tb::shutdown();
- *     }
- *
- * # DESCRIPTION
- *
- * Output is double-buffered.
- *
- * TODO
- *
- * # EXAMPLES
- *
- * TODO
- *
- */
+//! A lightweight curses alternative wrapping the termbox library.
+//!
+//! # SYNOPSIS
+//!
+//! A hello world for the terminal:
+//!
+//!     use std;
+//!     use termbox;
+//!
+//!     import tb = termbox;
+//!
+//!     fn main() {
+//!         tb::init();
+//!         tb::print(1, 1, tb::bold, tb::white, tb::black, "Hello, world!");
+//!         tb::present();
+//!         std::timer::sleep(std::uv_global_loop::get(), 1000);
+//!         tb::shutdown();
+//!     }
+//!
+//! # DESCRIPTION
+//!
+//! Output is double-buffered.
+//!
+//! TODO
+//!
+//! # EXAMPLES
+//!
+//! TODO
 
 #![feature(phase)]
 
@@ -168,16 +164,12 @@ pub fn height() -> uint {
     unsafe { ffi::tb_height() as uint }
 }
 
-/**
- * Clear buffer.
- */
+/// Clear buffer.
 pub fn clear() {
     unsafe { ffi::tb_clear(); }
 }
 
-// /**
-//  * Write buffer to terminal.
-//  */
+/// Write buffer to terminal.
 pub fn present() {
     unsafe { ffi::tb_present(); }
 }
@@ -190,14 +182,11 @@ pub fn hide_cursor() {
     unsafe { ffi::tb_set_cursor(ffi::TB_HIDE_CURSOR, ffi::TB_HIDE_CURSOR); }
 }
 
-// low-level wrapper
 pub fn change_cell(x: uint, y: uint, ch: u32, fg: u16, bg: u16) {
     unsafe { ffi::tb_change_cell(x as c_int, y as c_int, ch, fg, bg); }
 }
 
-/**
- * Print a string to the buffer.  Leftmost charater is at (x, y).
- */
+/// Print a string to the buffer.  Leftmost charater is at (x, y).
 pub fn print(x: uint, y: uint, sty: Style, fg: Color, bg: Color, s: &str) {
     let fg: u16 = convert_color(fg) | convert_style(sty);
     let bg: u16 = convert_color(bg);
@@ -208,9 +197,7 @@ pub fn print(x: uint, y: uint, sty: Style, fg: Color, bg: Color, s: &str) {
     }
 }
 
-// /**
-//  * Print a charater to the buffer.
-//  */
+/// Print a charater to the buffer.
 pub fn print_ch(x: uint, y: uint, sty: Style, fg: Color, bg: Color, ch: char) {
     unsafe {
         let fg: u16 = convert_color(fg) | convert_style(sty);
@@ -219,9 +206,7 @@ pub fn print_ch(x: uint, y: uint, sty: Style, fg: Color, bg: Color, ch: char) {
     }
 }
 
-/**
- * Get an event if within timeout milliseconds, otherwise return urn NoEvent.
- */
+/// Get an event if within timeout milliseconds, otherwise return urn NoEvent.
 pub fn peek_event(timeout: uint) -> Event {
     unsafe {
         let ev = nil_raw_event();
@@ -230,9 +215,7 @@ pub fn peek_event(timeout: uint) -> Event {
     }
 }
 
-// /**
-//  * Blocking function to return urn next event.
-//  */
+/// Blocking function to return urn next event.
 pub fn poll_event() -> Event {
     unsafe {
         let ev = nil_raw_event();
@@ -241,7 +224,7 @@ pub fn poll_event() -> Event {
     }
 }
 
-//Convenience functions
+/// Convenience functions
 pub fn with_term(f: proc():Send) {
     init();
     let res = task::try(f);
@@ -361,14 +344,6 @@ fn nil_raw_event() -> ffi::tb_event {
     ffi::tb_event{etype: 0, emod: 0, key: 0, ch: 0, w: 0, h: 0}
 }
 
-// /* helper fn
-//  *
-//  * ev_type
-//  *   0 -> no event
-//  *   1 -> key
-//  *   2 -> resize
-//  *   -1 -> error
-//  */
 fn unpack_event(ev_type: c_int, ev: &ffi::tb_event) -> Event {
     match FromPrimitive::from_i32(ev_type).unwrap() {
         tb_event_type::TB_EVENT_NONE => Event::NoEvent,
