@@ -1,0 +1,15 @@
+[package]
+
+name = "termbox_sys"
+version = "0.0.0-alpha"
+authors = []
+license = "MIT"
+description = "FFI bindings to termbox"
+
+links = "termbox"
+build = "build.rs"
+
+[lib]
+
+name = "termbox_sys"
+path = "src/lib.rs"
