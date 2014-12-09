@@ -5,10 +5,16 @@ extern crate libc;
 
 extern crate "termbox_sys" as ffi;
 
-use std::task;
-use std::char;
+use libc::c_int;
 
-pub use libc::c_int;
+use std::char;
+use std::task;
+
+use ffi::{
+    tb_attribute,
+    tb_color,
+    tb_event_type,
+};
 
 /*
  *
@@ -93,6 +99,10 @@ pub fn set_cursor(cx: uint, cy: uint) {
     unsafe { ffi::tb_set_cursor(cx as c_int, cy as c_int); }
 }
 
+pub fn hide_cursor() {
+    unsafe { ffi::tb_set_cursor(ffi::TB_HIDE_CURSOR, ffi::TB_HIDE_CURSOR); }
+}
+
 // low-level wrapper
 pub fn change_cell(x: uint, y: uint, ch: u32, fg: u16, bg: u16) {
     unsafe { ffi::tb_change_cell(x as c_int, y as c_int, ch, fg, bg); }
@@ -100,30 +110,32 @@ pub fn change_cell(x: uint, y: uint, ch: u32, fg: u16, bg: u16) {
 
 /// Convert from enums to u16
 pub fn convert_color(c: Color) -> u16 {
-    match c {
-        Color::Default => 0x00,
-        Color::Black => 0x01,
-        Color::Red => 0x02,
-        Color::Green => 0x03,
-        Color::Yellow => 0x04,
-        Color::Blue => 0x05,
-        Color::Magenta => 0x06,
-        Color::Cyan => 0x07,
-        Color::White => 0x08,
-    }
+    let ret = match c {
+        Color::Default => tb_color::TB_DEFAULT,
+        Color::Black => tb_color::TB_BLACK,
+        Color::Red => tb_color::TB_RED,
+        Color::Green => tb_color::TB_GREEN,
+        Color::Yellow => tb_color::TB_YELLOW,
+        Color::Blue => tb_color::TB_BLUE,
+        Color::Magenta => tb_color::TB_MAGENTA,
+        Color::Cyan => tb_color::TB_CYAN,
+        Color::White => tb_color::TB_WHITE,
+    };
+    ret as u16
 }
 
-pub fn convert_style(sty: Style) -> u16 {
-    match sty {
-        Style::Normal => 0x0000,
-        Style::Bold => 0x0100,
-        Style::Underline => 0x0200,
-        Style::BoldUnderline => 0x0300,
-        Style::Reverse => 0x0400,
-        Style::BoldReverse => 0x0500,
-        Style::UnderlineReverse => 0x0600,
-        Style::BoldUnderlineReverse => 0x700,
-    }
+pub fn convert_style(style: Style) -> u16 {
+    match style {
+        Style::Normal => tb_attribute::empty(),
+        Style::Bold => ffi::TB_BOLD,
+        Style::Underline => ffi::TB_UNDERLINE,
+        Style::BoldUnderline => ffi::TB_BOLD | ffi::TB_UNDERLINE,
+        Style::Reverse => ffi::TB_UNDERLINE,
+        Style::BoldReverse => ffi::TB_BOLD | ffi::TB_REVERSE,
+        Style::UnderlineReverse => ffi::TB_UNDERLINE | ffi::TB_REVERSE,
+        Style::BoldUnderlineReverse => ffi::TB_BOLD | ffi::TB_UNDERLINE |
+            ffi::TB_REVERSE,
+    }.bits()
 }
 
 pub fn reverse_convert_key(k: u16) -> Option<Key> {
@@ -333,7 +345,7 @@ pub fn with_term(f: proc():Send) {
     }
 }
 
-pub fn nil_raw_event() -> ffi::tb_event {
+fn nil_raw_event() -> ffi::tb_event {
     ffi::tb_event{etype: 0, emod: 0, key: 0, ch: 0, w: 0, h: 0}
 }
 
@@ -369,7 +381,7 @@ pub fn poll_event() -> Event {
     }
 }
 
-// /* helper pub fn
+// /* helper fn
 //  *
 //  * ev_type
 //  *   0 -> no event
@@ -377,11 +389,11 @@ pub fn poll_event() -> Event {
 //  *   2 -> resize
 //  *   -1 -> error
 //  */
-pub fn unpack_event(ev_type: c_int, ev: &ffi::tb_event) -> Event {
-    match ev_type {
-        0 => Event::NoEvent,
-        1 => Event::KeyEvent(ev.emod, reverse_convert_key(ev.key), char::from_u32(ev.ch)),
-        2 => Event::ResizeEvent(ev.w, ev.h),
-        _ => Event::NoEvent
+fn unpack_event(ev_type: c_int, ev: &ffi::tb_event) -> Event {
+    match FromPrimitive::from_i32(ev_type).unwrap() {
+        tb_event_type::TB_EVENT_NONE => Event::NoEvent,
+        tb_event_type::TB_EVENT_KEY => Event::KeyEvent(ev.emod, reverse_convert_key(ev.key), char::from_u32(ev.ch)),
+        tb_event_type::TB_EVENT_RESIZE => Event::ResizeEvent(ev.w, ev.h),
+        tb_event_type::TB_EVENT_ERROR => Event::NoEvent
     }
 }

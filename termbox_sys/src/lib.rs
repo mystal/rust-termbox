@@ -27,7 +27,10 @@ bitflags! {
     }
 }
 
+#[deriving(FromPrimitive)]
 pub enum tb_event_type {
+    TB_EVENT_ERROR = -1,
+    TB_EVENT_NONE = 0,
     TB_EVENT_KEY = 1,
     TB_EVENT_RESIZE = 2,
 }
