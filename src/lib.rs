@@ -148,6 +148,33 @@ pub enum Event {
     NoEvent
 }
 
+pub struct Attribute {
+    color: Color,
+    style: Style,
+}
+
+pub struct Cell {
+    ch: char,
+    fg: Attribute,
+    bg: Attribute,
+}
+
+impl Attribute {
+    pub fn as_u16(&self) -> u16 {
+        convert_color(self.color) | convert_style(self.style)
+    }
+}
+
+impl Cell {
+    pub fn as_raw(&self) -> ffi::tb_cell {
+        ffi::tb_cell {
+            ch: self.ch as u32,
+            fg: self.fg.as_u16(),
+            bg: self.bg.as_u16(),
+        }
+    }
+}
+
 pub fn init() -> int {
     unsafe { ffi::tb_init() as int }
 }
