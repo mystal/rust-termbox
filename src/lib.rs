@@ -149,14 +149,14 @@ pub enum Event {
 }
 
 pub struct Attribute {
-    color: Color,
-    style: Style,
+    pub color: Color,
+    pub style: Style,
 }
 
 pub struct Cell {
-    ch: char,
-    fg: Attribute,
-    bg: Attribute,
+    pub ch: char,
+    pub fg: Attribute,
+    pub bg: Attribute,
 }
 
 impl Attribute {
