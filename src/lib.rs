@@ -209,14 +209,29 @@ pub fn hide_cursor() {
     unsafe { ffi::tb_set_cursor(ffi::TB_HIDE_CURSOR, ffi::TB_HIDE_CURSOR); }
 }
 
-pub fn change_cell(x: uint, y: uint, ch: u32, fg: u16, bg: u16) {
-    unsafe { ffi::tb_change_cell(x as c_int, y as c_int, ch, fg, bg); }
+pub fn set_cell(x: uint, y: uint, cell: &Cell) {
+    unsafe { ffi::tb_put_cell(x as c_int, y as c_int, &cell.as_raw()); }
 }
 
-/// Print a string to the buffer.  Leftmost charater is at (x, y).
-pub fn print(x: uint, y: uint, sty: Style, fg: Color, bg: Color, s: &str) {
-    let fg: u16 = convert_color(fg) | convert_style(sty);
-    let bg: u16 = convert_color(bg);
+/// Print a charater to the buffer.
+pub fn print_ch(x: uint, y: uint, fg: Attribute, bg: Attribute, ch: char) {
+    let fg: u16 = fg.as_u16();
+    let bg: u16 = bg.as_u16();
+    unsafe {
+        ffi::tb_change_cell(x as c_int, y as c_int, ch as u32, fg, bg);
+    }
+}
+
+pub fn print_cells(x: uint, y: uint, cells: &[Cell]) {
+    for (i, cell) in cells.iter().enumerate() {
+        set_cell(x + i, y, cell);
+    }
+}
+
+/// Print a string to the buffer. Leftmost charater is at (x, y).
+pub fn print_string_styled(x: uint, y: uint, fg: Attribute, bg: Attribute, s: &str) {
+    let fg: u16 = fg.as_u16();
+    let bg: u16 = bg.as_u16();
     for (i, ch) in s.chars().enumerate() {
         unsafe {
             ffi::tb_change_cell((x + i) as c_int, y as c_int, ch as u32, fg, bg);
@@ -224,13 +239,12 @@ pub fn print(x: uint, y: uint, sty: Style, fg: Color, bg: Color, s: &str) {
     }
 }
 
-/// Print a charater to the buffer.
-pub fn print_ch(x: uint, y: uint, sty: Style, fg: Color, bg: Color, ch: char) {
-    unsafe {
-        let fg: u16 = convert_color(fg) | convert_style(sty);
-        let bg: u16 = convert_color(bg);
-        ffi::tb_change_cell(x as c_int, y as c_int, ch as u32, fg, bg);
-    }
+pub fn print_string(x: uint, y: uint, s: &str) {
+    let default = Attribute {
+        color: Color::Default,
+        style: Style::Normal,
+    };
+    print_string_styled(x, y, default, default, s);
 }
 
 /// Get an event if within timeout milliseconds, otherwise return urn NoEvent.
