@@ -268,7 +268,9 @@ pub fn poll_event() -> Event {
 }
 
 /// Convenience functions
-pub fn with_term(f: proc():Send) {
+pub fn with_term<F>(f: F)
+    where F: FnOnce(), F: Send
+{
     init();
     let res = task::try(f);
     shutdown();

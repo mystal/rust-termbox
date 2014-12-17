@@ -21,7 +21,6 @@ pub enum tb_color {
 }
 
 bitflags! {
-    #[deriving(Copy)]
     flags tb_attribute: u16 {
         const TB_BOLD = 0x0100,
         const TB_UNDERLINE = 0x0200,
