@@ -37,7 +37,7 @@ extern crate "termbox_sys" as ffi;
 use libc::c_int;
 
 use std::char;
-use std::task;
+use std::thread::Thread;
 
 use ffi::{
     tb_attribute,
@@ -272,7 +272,7 @@ pub fn with_term<F>(f: F)
     where F: FnOnce(), F: Send
 {
     init();
-    let res = task::try(f);
+    let res = Thread::spawn(f).join();
     shutdown();
     match res {
         Err(_) => {
