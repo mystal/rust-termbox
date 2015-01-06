@@ -7,7 +7,7 @@ use libc::c_int;
 pub const TB_HIDE_CURSOR: c_int = -1;
 pub const TB_MOD_ALT: c_int = 1;
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub enum tb_color {
     TB_DEFAULT,
     TB_BLACK,
@@ -28,7 +28,7 @@ bitflags! {
     }
 }
 
-#[deriving(FromPrimitive, Copy)]
+#[derive(FromPrimitive, Copy)]
 pub enum tb_event_type {
     TB_EVENT_ERROR = -1,
     TB_EVENT_NONE = 0,
@@ -36,21 +36,21 @@ pub enum tb_event_type {
     TB_EVENT_RESIZE = 2,
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub enum tb_error {
     TB_EUNSUPPORTED_TERMINAL = -1,
     TB_EFAILED_TO_OPEN_TTY = -2,
     TB_EPIPE_TRAP_ERROR = -3,
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub enum tb_input_mode {
     TB_INPUT_CURRENT = 0,
     TB_INPUT_ESC = 1,
     TB_INPUT_ALT = 2,
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub enum tb_output_mode {
     TB_OUTPUT_CURRENT = 0,
     TB_OUTPUT_NORMAL = 1,
@@ -63,7 +63,7 @@ pub enum tb_output_mode {
  * The event type matches struct tb_event from termbox.h
  */
 #[repr(C)]
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct tb_event {
     pub etype: u8,
     pub emod: u8,
@@ -74,7 +74,7 @@ pub struct tb_event {
 }
 
 #[repr(C)]
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct tb_cell {
     pub ch: u32,
     pub fg: u16,

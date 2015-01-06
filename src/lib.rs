@@ -37,6 +37,7 @@ extern crate "termbox_sys" as ffi;
 use libc::c_int;
 
 use std::char;
+use std::num::FromPrimitive;
 use std::thread::Thread;
 
 use ffi::{
@@ -45,7 +46,7 @@ use ffi::{
     tb_event_type,
 };
 
-#[deriving(Show, Eq, PartialEq, Copy)]
+#[derive(Show, Eq, PartialEq, Copy)]
 pub enum Key {
     F1 = 65535,
     F2 = 65534,
@@ -116,7 +117,7 @@ pub enum Key {
     //ctrl_8 = 127
 }
 
-#[deriving(Show, Eq, PartialEq, Copy)]
+#[derive(Show, Eq, PartialEq, Copy)]
 pub enum Color {
     Default,
     Black,
@@ -129,7 +130,7 @@ pub enum Color {
     White
 }
 
-#[deriving(Show, Eq, PartialEq, Copy)]
+#[derive(Show, Eq, PartialEq, Copy)]
 pub enum Style {
     Normal,
     Bold,
@@ -141,20 +142,20 @@ pub enum Style {
     BoldUnderlineReverse
 }
 
-#[deriving(Show, Eq, PartialEq, Copy)]
+#[derive(Show, Eq, PartialEq, Copy)]
 pub enum Event {
     KeyEvent(u8, Option<Key>, Option<char>),
     ResizeEvent(i32, i32),
     NoEvent
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct Attribute {
     pub color: Color,
     pub style: Style,
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct Cell {
     pub ch: char,
     pub fg: Attribute,
