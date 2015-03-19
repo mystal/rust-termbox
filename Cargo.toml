@@ -11,6 +11,10 @@ description = "A Rust wrapper for the termbox library"
 name = "termbox"
 path = "src/lib.rs"
 
+[dependencies]
+
+log = "*"
+
 [dependencies.termbox_sys]
 
 path = "termbox_sys"

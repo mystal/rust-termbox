@@ -13,3 +13,7 @@ build = "build.rs"
 
 name = "termbox_sys"
 path = "src/lib.rs"
+
+[dependencies]
+
+bitflags = "*"

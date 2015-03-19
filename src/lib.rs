@@ -26,11 +26,11 @@
 //! # EXAMPLES
 //!
 //! TODO
-
-#![feature(phase)]
+#![feature(libc)]
 
 extern crate libc;
-#[phase(plugin, link)] extern crate log;
+#[macro_use]
+extern crate log;
 
 extern crate "termbox_sys" as ffi;
 
@@ -38,7 +38,7 @@ use libc::c_int;
 
 use std::char;
 use std::num::FromPrimitive;
-use std::thread::Thread;
+use std::thread;
 
 use ffi::{
     tb_attribute,
@@ -46,7 +46,7 @@ use ffi::{
     tb_event_type,
 };
 
-#[derive(Show, Eq, PartialEq, Copy)]
+#[derive(Debug, Eq, PartialEq, Copy)]
 pub enum Key {
     F1 = 65535,
     F2 = 65534,
@@ -117,7 +117,7 @@ pub enum Key {
     //ctrl_8 = 127
 }
 
-#[derive(Show, Eq, PartialEq, Copy)]
+#[derive(Debug, Eq, PartialEq, Copy)]
 pub enum Color {
     Default,
     Black,
@@ -130,7 +130,7 @@ pub enum Color {
     White
 }
 
-#[derive(Show, Eq, PartialEq, Copy)]
+#[derive(Debug, Eq, PartialEq, Copy)]
 pub enum Style {
     Normal,
     Bold,
@@ -142,7 +142,7 @@ pub enum Style {
     BoldUnderlineReverse
 }
 
-#[derive(Show, Eq, PartialEq, Copy)]
+#[derive(Debug, Eq, PartialEq, Copy)]
 pub enum Event {
     KeyEvent(u8, Option<Key>, Option<char>),
     ResizeEvent(i32, i32),
@@ -178,20 +178,20 @@ impl Cell {
     }
 }
 
-pub fn init() -> int {
-    unsafe { ffi::tb_init() as int }
+pub fn init() -> i32 {
+    unsafe { ffi::tb_init() as i32 }
 }
 
 pub fn shutdown() {
     unsafe { ffi::tb_shutdown(); }
 }
 
-pub fn width() -> uint {
-    unsafe { ffi::tb_width() as uint }
+pub fn width() -> u32 {
+    unsafe { ffi::tb_width() as u32 }
 }
 
-pub fn height() -> uint {
-    unsafe { ffi::tb_height() as uint }
+pub fn height() -> u32 {
+    unsafe { ffi::tb_height() as u32 }
 }
 
 /// Clear buffer.
@@ -204,7 +204,7 @@ pub fn present() {
     unsafe { ffi::tb_present(); }
 }
 
-pub fn set_cursor(cx: uint, cy: uint) {
+pub fn set_cursor(cx: u32, cy: u32) {
     unsafe { ffi::tb_set_cursor(cx as c_int, cy as c_int); }
 }
 
@@ -212,12 +212,12 @@ pub fn hide_cursor() {
     unsafe { ffi::tb_set_cursor(ffi::TB_HIDE_CURSOR, ffi::TB_HIDE_CURSOR); }
 }
 
-pub fn set_cell(x: uint, y: uint, cell: &Cell) {
+pub fn set_cell(x: u32, y: u32, cell: &Cell) {
     unsafe { ffi::tb_put_cell(x as c_int, y as c_int, &cell.as_raw()); }
 }
 
 /// Print a charater to the buffer.
-pub fn print_ch(x: uint, y: uint, fg: Attribute, bg: Attribute, ch: char) {
+pub fn print_ch(x: u32, y: u32, fg: Attribute, bg: Attribute, ch: char) {
     let fg: u16 = fg.as_u16();
     let bg: u16 = bg.as_u16();
     unsafe {
@@ -225,24 +225,24 @@ pub fn print_ch(x: uint, y: uint, fg: Attribute, bg: Attribute, ch: char) {
     }
 }
 
-pub fn print_cells(x: uint, y: uint, cells: &[Cell]) {
+pub fn print_cells(x: u32, y: u32, cells: &[Cell]) {
     for (i, cell) in cells.iter().enumerate() {
-        set_cell(x + i, y, cell);
+        set_cell(x + i as u32, y, cell);
     }
 }
 
 /// Print a string to the buffer. Leftmost charater is at (x, y).
-pub fn print_string_styled(x: uint, y: uint, fg: Attribute, bg: Attribute, s: &str) {
+pub fn print_string_styled(x: u32, y: u32, fg: Attribute, bg: Attribute, s: &str) {
     let fg: u16 = fg.as_u16();
     let bg: u16 = bg.as_u16();
     for (i, ch) in s.chars().enumerate() {
         unsafe {
-            ffi::tb_change_cell((x + i) as c_int, y as c_int, ch as u32, fg, bg);
+            ffi::tb_change_cell((x + i as u32) as c_int, y as c_int, ch as u32, fg, bg);
         }
     }
 }
 
-pub fn print_string(x: uint, y: uint, s: &str) {
+pub fn print_string(x: u32, y: u32, s: &str) {
     let default = Attribute {
         color: Color::Default,
         style: Style::Normal,
@@ -251,7 +251,7 @@ pub fn print_string(x: uint, y: uint, s: &str) {
 }
 
 /// Get an event if within timeout milliseconds, otherwise return urn NoEvent.
-pub fn peek_event(timeout: uint) -> Event {
+pub fn peek_event(timeout: u32) -> Event {
     unsafe {
         let ev = nil_raw_event();
         let rc = ffi::tb_peek_event(&ev, timeout as c_int);
@@ -270,10 +270,10 @@ pub fn poll_event() -> Event {
 
 /// Convenience functions
 pub fn with_term<F>(f: F)
-    where F: FnOnce(), F: Send
+    where F: FnOnce() + Send + 'static
 {
     init();
-    let res = Thread::spawn(f).join();
+    let res = thread::spawn(f).join();
     shutdown();
     match res {
         Err(_) => {

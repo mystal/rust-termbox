@@ -1,5 +1,8 @@
 #![allow(non_camel_case_types)]
+#![feature(libc)]
 
+#[macro_use]
+extern crate bitflags;
 extern crate libc;
 
 use libc::c_int;
